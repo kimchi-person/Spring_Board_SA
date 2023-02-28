@@ -5,16 +5,20 @@ import com.sparta.spring_board_sa.dto.BoardRequestDto;
 import com.sparta.spring_board_sa.dto.BoardResponseDto;
 import com.sparta.spring_board_sa.dto.ResponseDto;
 import com.sparta.spring_board_sa.entity.Board;
+import com.sparta.spring_board_sa.entity.BoardLike;
 import com.sparta.spring_board_sa.entity.User;
 import com.sparta.spring_board_sa.entity.UserRoleEnum;
+import com.sparta.spring_board_sa.repository.BoardLikeRepository;
 import com.sparta.spring_board_sa.repository.BoardRepository;
 import com.sparta.spring_board_sa.repository.UserRepository;
+import com.sparta.spring_board_sa.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,17 +26,15 @@ public class BoardService {
 
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
+    private final BoardLikeRepository boardLikeRepository;
 
 
     // 게시글 작성하기
     @Transactional
-    public BoardResponseDto createPost(BoardRequestDto boardRequestDto, String username) {
-            User user = userRepository.findByUsername(username).orElseThrow(
-                    () -> new IllegalArgumentException("사용자 정보가 없습니다.")
-            );
+    public BoardResponseDto createPost(BoardRequestDto boardRequestDto, UserDetailsImpl userDetails) {
+            User user = userDetails.getUser();
             Board board = new Board(boardRequestDto, user);
             boardRepository.save(board);
-
             return new BoardResponseDto(board);
         }
 
@@ -45,10 +47,10 @@ public class BoardService {
         for (Board board : list) {
             boardResponseDtoList.add(new BoardResponseDto(board));
         }
-        if (!boardResponseDtoList.isEmpty()) {
-            return boardResponseDtoList;
-        }else {
+        if (boardResponseDtoList.isEmpty()) {
             throw new IllegalArgumentException("게시글이 아무것도 존재하지 않습니다.");
+        }else {
+            return boardResponseDtoList;
         }
     }
 
@@ -62,10 +64,8 @@ public class BoardService {
 
     // 특정 게시글 업데이트
     @Transactional
-    public BoardResponseDto updatePost(Long id, BoardRequestDto boardRequestDto, String username) {
-        User user = userRepository.findByUsername(username).orElseThrow(
-                () -> new IllegalArgumentException("사용자 정보가 없습니다.")
-        );
+    public BoardResponseDto updatePost(Long id, BoardRequestDto boardRequestDto, UserDetailsImpl userDetails) {
+        User user = userDetails.getUser();
         Board board = boardRepository.findByIdAndUserId(id, user.getId()).orElseThrow(
                 () -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다.")
         );
@@ -77,10 +77,8 @@ public class BoardService {
     }
 
     // 특정 게시글 삭제
-    public ResponseDto<String> deletePost(Long id, String username) {
-            User user = userRepository.findByUsername(username).orElseThrow(
-                    () -> new IllegalArgumentException("사용자 정보가 없습니다.")
-            );
+    public ResponseDto<String> deletePost(Long id, UserDetailsImpl userDetails) {
+            User user = userDetails.getUser();
             Board board = boardRepository.findByIdAndUserId(id, user.getId()).orElseThrow(
                     () -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다.")
             );
@@ -91,6 +89,24 @@ public class BoardService {
                 throw new IllegalArgumentException("게시글이 이미 삭제 되었거나, 게시글 작성자만 삭제 가능합니다.");
             }
     }
+
+    // 게시글 좋아요
+    public ResponseDto<String> likeBoard(Long id, UserDetailsImpl userDetails) {
+        User user = userDetails.getUser();
+        Board board = boardRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다.")
+        );
+        Optional<BoardLike> boardLike = boardLikeRepository.findByBoardAndUser(board, user);
+        if (boardLike.isPresent()) {
+            boardLikeRepository.deleteById(boardLike.get().getId());
+            return ResponseDto.success("게시글 좋아요 취소");
+        }
+        boardLikeRepository.save(new BoardLike(board, user));
+        return ResponseDto.success("게시글 좋아요 성공");
+    }
+
+
+
 }
 
 

@@ -2,6 +2,7 @@ package com.sparta.spring_board_sa.dto;
 
 
 import com.sparta.spring_board_sa.entity.Board;
+import com.sparta.spring_board_sa.entity.BoardLike;
 import com.sparta.spring_board_sa.entity.Comment;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,7 @@ public class BoardResponseDto {
     private String title;
     private String content;
     private String username;
+    private int boardLike;
     private LocalDateTime createAt;
     private LocalDateTime modifiedAt;
 
@@ -28,6 +30,7 @@ public class BoardResponseDto {
         this.title = board.getTitle();
         this.content = board.getContent();
         this.username = board.getUsername();
+        this.boardLike = board.getBoardLikeList().size();
         this.createAt = board.getCreateAt();
         this.modifiedAt = board.getModifiedAt();
         for (Comment comment : board.getCommentList()) {

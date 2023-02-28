@@ -3,6 +3,7 @@ package com.sparta.spring_board_sa.controller;
 import com.sparta.spring_board_sa.dto.CommentRequestDto;
 import com.sparta.spring_board_sa.dto.CommentResponseDto;
 import com.sparta.spring_board_sa.dto.ResponseDto;
+import com.sparta.spring_board_sa.repository.CommentLikeRepository;
 import com.sparta.spring_board_sa.security.UserDetailsImpl;
 import com.sparta.spring_board_sa.service.CommentService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class CommentController {
     public CommentResponseDto createComment(@PathVariable Long id,
                                             @RequestBody CommentRequestDto commentRequestDto,
                                             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return commentService.createComment(id, commentRequestDto, userDetails.getUser().getUsername());
+        return commentService.createComment(id, commentRequestDto, userDetails);
     }
 
     // 코멘트 수정
@@ -30,13 +31,21 @@ public class CommentController {
     public CommentResponseDto updateComment(@PathVariable Long id,
                                             @RequestBody CommentRequestDto commentRequestDto,
                                             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return commentService.updateComment(id, commentRequestDto, userDetails.getUser().getUsername());
+        return commentService.updateComment(id, commentRequestDto, userDetails);
     }
 
     // 코멘트 삭제
     @DeleteMapping("/comment/{id}")
-    public ResponseDto<String> deleteComment(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return commentService.deleteComment(id, userDetails.getUser().getUsername());
+    public ResponseDto<String> deleteComment(@PathVariable Long id,
+                                             @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return commentService.deleteComment(id, userDetails);
     }
 
+    // 코멘트 좋아요
+    @PostMapping("/comment/like/{id}")
+    public ResponseDto<String> likeComment(@PathVariable Long id,
+                                           @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return commentService.likeComment(id, userDetails);
+    }
 }
+

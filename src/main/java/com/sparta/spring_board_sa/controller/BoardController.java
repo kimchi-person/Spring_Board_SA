@@ -22,7 +22,7 @@ public class BoardController {
     @PostMapping("/post")
     public BoardResponseDto createPost(@RequestBody BoardRequestDto boardRequestDto,
                                        @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return boardService.createPost(boardRequestDto, userDetails.getUser().getUsername());
+        return boardService.createPost(boardRequestDto, userDetails);
     }
 
     // 모든 게시글 보여주기 (로그인 필요없음)
@@ -42,12 +42,20 @@ public class BoardController {
     public BoardResponseDto updatePost(@PathVariable Long id,
                                        @RequestBody BoardRequestDto boardRequestDto,
                                        @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return boardService.updatePost(id, boardRequestDto, userDetails.getUser().getUsername());
+        return boardService.updatePost(id, boardRequestDto, userDetails);
     }
 
     // 게시글 삭제
     @DeleteMapping("/post/{id}")
-    public ResponseDto<String>  deletePost(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return boardService.deletePost(id, userDetails.getUser().getUsername());
+    public ResponseDto<String>  deletePost(@PathVariable Long id,
+                                           @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return boardService.deletePost(id, userDetails);
+    }
+
+    // 게시글 좋아요
+    @PostMapping("/post/like/{id}")
+    public ResponseDto<String> likeBoard(@PathVariable Long id,
+                                         @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return boardService.likeBoard(id, userDetails);
     }
 }
